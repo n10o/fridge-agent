@@ -1,5 +1,6 @@
 from os import walk
 from os.path import getctime, getsize
+import os, time
 from argparse import ArgumentParser
 import sqlite3
 
@@ -14,6 +15,7 @@ def initTable():
     cur = conn.cursor()
     sql = """
     create table food(
+        id primary key,
         name varchar,
         size bigint,
         ctime date
@@ -29,10 +31,13 @@ def initTable():
 
 def insertFood(food):
     conn = sqlite3.connect(DBPATH)
+    conn.text_factory = str
     cur = conn.cursor()
     cur.executemany("""INSERT INTO food(name,size,ctime) VALUES (?,?,?)""", food)
     conn.commit()
     conn.close()
+
+#def pickFood(id):
 
 def checkFood():
     food = []
@@ -40,7 +45,7 @@ def checkFood():
         for fname in fnames:
             fpath = path + "/" + fname
             try:
-                food.append([fpath, getctime(fpath), getsize(fpath)])
+                food.append([fpath, time.ctime(getctime(fpath)), getsize(fpath)])
                 print "Name:", fpath, "CTime:", getctime(fpath), " Size:", getsize(fpath)
             except OSError:
                 print "error:", fpath
@@ -49,5 +54,5 @@ def checkFood():
     print len(food)
 
 if __name__ == '__main__':
-    checkFood()
     initTable()
+    checkFood()
